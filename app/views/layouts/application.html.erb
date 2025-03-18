@@ -35,7 +35,6 @@
         </div>
       </main>
     </div>
-    <!-- JavaScript for sidebar functionality -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         // Elements
@@ -43,7 +42,6 @@
         const sidebarToggle = document.getElementById("sidebar-toggle");
         const mobileToggle = document.getElementById("mobile-toggle");
         const sidebarOverlay = document.getElementById("sidebar-overlay");
-        const mobileTooltip = document.getElementById("mobile-tooltip");
 
         // Função para salvar o estado do sidebar no localStorage
         function saveSidebarState(isCollapsed) {
@@ -55,14 +53,31 @@
           return localStorage.getItem("sidebarCollapsed") === "true";
         }
 
-        // Toggle sidebar com persistência
+        // Toggle sidebar com persistência - CORRIGIDO
         function toggleSidebar() {
-          sidebar.classList.toggle("collapsed");
-          sidebarOverlay.classList.toggle("active");
-          document.body.style.overflow = sidebar.classList.contains("collapsed")
-            ? "auto"
-            : "hidden";
-          saveSidebarState(sidebar.classList.contains("collapsed"));
+          const isMobile = window.innerWidth < 992;
+
+          if (isMobile) {
+       // Em mobile, o comportamento é diferente
+       // Se o sidebar tem a classe collapsed, ele está VISÍVEL em mobile
+       // Se o sidebar NÃO tem a classe collapsed, ele está ESCONDIDO em mobile
+
+       // Inverte o estado atual
+       sidebar.classList.toggle("collapsed");
+       sidebarOverlay.classList.toggle("active");
+
+       // Controla o scroll do body
+       if (sidebar.classList.contains("collapsed")) {
+         document.body.style.overflow = "hidden";
+       } else {
+         document.body.style.overflow = "auto";
+       }
+          } else {
+       // Em desktop, comportamento normal
+       sidebar.classList.toggle("collapsed");
+       // Salva o estado atual (apenas em desktop)
+       saveSidebarState(sidebar.classList.contains("collapsed"));
+          }
         }
 
         // Event listeners
@@ -78,47 +93,23 @@
           sidebarOverlay.addEventListener("click", toggleSidebar);
         }
 
-        // Mobile tooltip for sidebar items
-        const sidebarLinks = document.querySelectorAll(".sidebar-menu-link");
-        if (window.innerWidth < 992) {
-          sidebarLinks.forEach((link) => {
-            link.addEventListener("click", function () {
-              const tooltipText = this.getAttribute("data-tooltip");
-              if (mobileTooltip) {
-                mobileTooltip.textContent = tooltipText;
-                mobileTooltip.style.display = "block";
-
-                setTimeout(() => {
-                  mobileTooltip.style.display = "none";
-                }, 2000);
-              }
-              toggleSidebar();
-            });
-          });
-        }
-
         // Initialize sidebar state based on saved state and screen size
         if (sidebar) {
-          const savedState = getSavedSidebarState();
-          if (savedState !== null) {
-            if (savedState) {
-              sidebar.classList.add("collapsed");
-            } else {
-              sidebar.classList.remove("collapsed");
-            }
+          const isMobile = window.innerWidth < 992;
 
-            if (window.innerWidth < 992 && !savedState) {
-              sidebarOverlay.classList.add("active");
-              document.body.style.overflow = "hidden";
-            }
+          if (isMobile) {
+       // Em mobile, sempre começa fechado (sem a classe collapsed)
+       sidebar.classList.remove("collapsed");
           } else {
-            if (window.innerWidth < 992) {
-              sidebar.classList.add("collapsed");
-              saveSidebarState(true);
-            } else {
-              sidebar.classList.remove("collapsed");
-              saveSidebarState(false);
-            }
+       // Em desktop, usa o estado salvo
+       const savedState = getSavedSidebarState();
+       if (savedState !== null) {
+         if (savedState) {
+           sidebar.classList.add("collapsed");
+         } else {
+           sidebar.classList.remove("collapsed");
+         }
+       }
           }
         }
       });

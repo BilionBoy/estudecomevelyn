@@ -1319,7 +1319,8 @@ footer {
   min-height: 100vh;
   position: relative;
 }
-/* Sidebar Styles */
+
+/* Sidebar Styles - CORRIGIDO */
 .sidebar {
   width: 280px;
   height: 100vh;
@@ -1329,14 +1330,39 @@ footer {
   background-color: var(--dark);
   color: var(--light);
   z-index: 1000;
-  transition: var(--transition);
+  transition: transform 0.3s ease;
   display: flex;
   flex-direction: column;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.sidebar.collapsed {
-  transform: translateX(-100%);
+/* Em desktop, o sidebar permanece visível mesmo quando "collapsed" */
+@media (min-width: 992px) {
+  .sidebar {
+    transform: translateX(
+      0
+    ) !important; /* Força o sidebar a ficar visível em desktop */
+  }
+
+  /* Quando colapsado em desktop, apenas ajusta a margem do conteúdo principal */
+  .sidebar.collapsed ~ .main-content {
+    margin-left: 0;
+  }
+
+  .sidebar:not(.collapsed) ~ .main-content {
+    margin-left: 280px;
+  }
+}
+
+/* Em mobile, o sidebar é escondido por padrão */
+@media (max-width: 991.98px) {
+  .sidebar {
+    transform: translateX(-100%); /* Escondido por padrão em mobile */
+  }
+
+  .sidebar.collapsed {
+    transform: translateX(0); /* Visível quando colapsado em mobile */
+  }
 }
 
 .sidebar-header {
@@ -1371,6 +1397,11 @@ footer {
   padding: 0.25rem;
   border-radius: 4px;
   transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
 }
 
 .sidebar-toggle:hover {
@@ -1479,7 +1510,35 @@ footer {
   color: rgba(255, 255, 255, 0.5);
 }
 
-.sidebar-overlay {
+/* Main Content Styles - CORRIGIDO */
+.main-content {
+  flex: 1;
+  margin-left: 280px;
+  transition: margin-left 0.3s ease;
+  min-height: 100vh;
+  background-color: var(--gray-light);
+}
+
+/* Em desktop, o conteúdo principal se ajusta quando o sidebar é colapsado */
+@media (min-width: 992px) {
+  .sidebar.collapsed ~ .main-content {
+    margin-left: 0;
+  }
+}
+
+/* Em mobile, o conteúdo principal sempre ocupa toda a largura */
+@media (max-width: 991.98px) {
+  .main-content {
+    margin-left: 0;
+  }
+}
+
+.content {
+  padding: 1.5rem;
+}
+
+/* Overlay para mobile */
+#sidebar-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -1489,13 +1548,88 @@ footer {
   z-index: 999;
   opacity: 0;
   visibility: hidden;
-  transition: var(--transition);
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-.sidebar-overlay.active {
-  opacity: 1;
-  visibility: visible;
+/* Apenas mostrar overlay em mobile */
+@media (max-width: 991.98px) {
+  #sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
 }
+
+/* Botão de toggle no header para mobile */
+.mobile-toggle {
+  display: none; /* Escondido por padrão em desktop */
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  margin-right: 1rem;
+  cursor: pointer;
+  color: var(--dark);
+  z-index: 1200; /* Valor alto para garantir que fique acima de outros elementos */
+  position: relative; /* Importante para o z-index funcionar */
+}
+@media (max-width: 991.98px) {
+  .mobile-toggle {
+    display: flex !important; /* Força a exibição com !important */
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+  }
+}
+/* Estilo específico para o botão quando o sidebar está fechado */
+@media (max-width: 991.98px) {
+  .sidebar:not(.collapsed) ~ .main-content .mobile-toggle {
+    display: flex !important;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    background-color: var(--dark);
+    color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+}
+/* Garante que o ícone dentro do botão seja visível */
+.mobile-toggle i {
+  display: block !important;
+}
+
+/* Tooltip Styles - CORRIGIDO */
+.tooltip {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white; /* Corrigido para branco */
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  z-index: 1100;
+}
+
+.tooltip.top {
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tooltip.top:after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+}
+
 /* Header Styles */
 .header {
   display: flex;
@@ -1507,22 +1641,13 @@ footer {
   top: 0;
   z-index: 100;
 }
+/* Garantir que o botão de toggle seja sempre visível em mobile */
 
 .header-title {
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
   margin-right: auto;
-}
-
-.mobile-toggle {
-  display: none;
-  background: transparent;
-  border: none;
-  font-size: 1.5rem;
-  margin-right: 1rem;
-  cursor: pointer;
-  color: var(--dark);
 }
 
 .header-search {
@@ -1630,22 +1755,6 @@ footer {
   color: var(--gray);
 }
 
-/* Main Content Styles */
-.main-content {
-  flex: 1;
-  margin-left: 280px;
-  transition: var(--transition);
-  min-height: 100vh;
-  background-color: var(--gray-light);
-}
-
-.sidebar.collapsed ~ .main-content {
-  margin-left: 0;
-}
-
-.content {
-  padding: 1.5rem;
-}
 .stat-card {
   background-color: var(--light);
   border-radius: var(--border-radius-sm);
@@ -1806,7 +1915,7 @@ footer {
 }
 
 /* Mobile Tooltip */
-.mobile-tooltip {
+#mobile-tooltip {
   position: fixed;
   bottom: 2rem;
   left: 50%;
@@ -1824,28 +1933,6 @@ footer {
 @media (max-width: 1199.98px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 991.98px) {
-  .sidebar {
-    transform: translateX(-100%);
-  }
-
-  .sidebar.collapsed {
-    transform: translateX(0);
-  }
-
-  .main-content {
-    margin-left: 0;
-  }
-
-  .mobile-toggle {
-    display: block;
-  }
-
-  .header-search-input {
-    width: 200px;
   }
 }
 
@@ -1868,37 +1955,4 @@ body {
   margin: 0;
   padding: 0;
   background-color: var(--gray-light);
-}
-
-/* Adicionar overlay e tooltip */
-#sidebar-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  opacity: 0;
-  visibility: hidden;
-  transition: var(--transition);
-}
-
-#sidebar-overlay.active {
-  opacity: 1;
-  visibility: visible;
-}
-
-#mobile-tooltip {
-  position: fixed;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.8);
-  color: var(--light);
-  padding: 0.5rem 1rem;
-  border-radius: 50px;
-  font-size: 0.875rem;
-  z-index: 1100;
-  display: none;
 }
